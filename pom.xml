@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.erlang</groupId>
+	<artifactId>erlsha2</artifactId>
+	<version>2.0.0-SNAPSHOT</version>
+	<packaging>erlang-std</packaging>
+	<name>erlsha2</name>
+	<description>SHA-2 Erlang/C library</description>
+	<scm>
+		<connection>scm:git:https://github.com/i11/erlsha2.git</connection>
+		<developerConnection>scm:git:https://github.com/i11/erlsha2.git</developerConnection>
+		<url>scm:git:https://github.com/i11/erlsha2.git</url>
+	</scm>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>verify-c-config</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./c_src/config.sh</executable>
+							<workingDirectory>${basedir}</workingDirectory>
+							<arguments>
+								<argument>c_src/config.h</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>eu.lindenbaum</groupId>
+				<artifactId>maven-erlang-plugin</artifactId>
+				<version>2.2.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<skipDialyzer>true</skipDialyzer>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
