@@ -1,0 +1,61 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -smp enable -sname compile_nif
+
+-define(DEBUG, 0).
+%% Assume GNU C compiler
+-define(COMPILER, "gcc").
+-define(CMD_TIMEOUT, 5000).
+-define(COMPILE_FLAGS, "-g -Wall -fPIC -O3 -I.").
+-define(LINK_FLAGS, "-shared -lerl_interface -lei").
+
+main([Action, Arg1, Arg2]) ->
+    try
+        case Action of
+            "compile" ->
+                io:format("Compiling...\n", []),
+                Include_dir = code:root_dir() ++ "/usr/include",
+                ensure_dir(Arg2),
+                Cmd = lists:flatten(io_lib:format("~s ~s -I~s -I~s -c ~s -o ~s", [?COMPILER, ?COMPILE_FLAGS, code:lib_dir(erl_interface, include), Include_dir, Arg1, Arg2])),
+                run(Cmd, ?DEBUG);
+            "link" ->
+                io:format("Linking...\n", []),
+                ensure_dir(Arg2),
+                Cmd = lists:flatten(io_lib:format("~s ~s -L~s ~s -o ~s", [?COMPILER, ?LINK_FLAGS, code:lib_dir(erl_interface, lib), Arg1, Arg2])),
+                run(Cmd, ?DEBUG)
+        end
+    catch
+        E:R ->
+            io:format("Error: ~p~nReason: ~p~n", [E, R]),
+            usage()
+    end;
+main(_) ->
+    usage().
+
+ensure_dir(Dir) ->
+    case filelib:is_dir(filename:dirname(Dir)) of
+        false ->
+            file:make_dir(filename:dirname(Dir));
+        true ->
+            ok
+    end.
+
+run(Cmd, 1) ->
+    io:format("~p~n", [ Cmd ]),
+    run(Cmd, fast);
+run(Cmd, _) ->
+    Port = erlang:open_port({spawn, Cmd},[exit_status]),
+    loop(Port,[], ?CMD_TIMEOUT).
+
+loop(Port, Data, Timeout) ->
+    receive
+        {Port, {data, NewData}} -> loop(Port, Data++NewData, Timeout);
+        {Port, {exit_status, 0}} -> Data;
+        {Port, {exit_status, S}} -> throw({commandfailed, S})
+    after Timeout ->
+        throw(timeout)
+    end.
+
+usage() ->
+    io:format("usage: compile_nif.esc { compile | link } source/object object/somod\n"),
+    halt(1).

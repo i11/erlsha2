@@ -26,11 +26,47 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
+							<environmentVariables>
+								<!-- Assume GNU C compiler -->
+								<CC>gcc</CC>
+							</environmentVariables>
 							<executable>./c_src/config.sh</executable>
 							<workingDirectory>${basedir}</workingDirectory>
 							<arguments>
 								<argument>c_src/config.h</argument>
 							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>port-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./c_src/compile_nif.esc</executable>
+							<arguments>
+								<argument>compile</argument>
+								<argument>c_src/erlsha2_nif.c</argument>
+								<argument>c_src/erlsha2_nif.o</argument>
+							</arguments>
+							<workingDirectory>${basedir}</workingDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>port-link</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./c_src/compile_nif.esc</executable>
+							<arguments>
+								<argument>link</argument>
+								<argument>c_src/erlsha2_nif.o</argument>
+								<argument>priv/erlsha2_nif.so</argument>
+							</arguments>
+							<workingDirectory>${basedir}</workingDirectory>
 						</configuration>
 					</execution>
 				</executions>
